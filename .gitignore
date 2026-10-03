@@ -1,0 +1,33 @@
+# Virtual environment
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# YOLO / ML generated files
+*.pt
+*.onnx
+*.weights
+
+# Generated evidence
+snapshots/
+
+# Test/generated media
+test_videos/
+test_images/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
