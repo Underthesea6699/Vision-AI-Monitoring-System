@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Vision-AI Monitoring System
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+    <header class="header">
+
+        <h1>
+            Vision-AI Monitoring System
+        </h1>
+
+        <p>
+            Industrial Safety & Surveillance Dashboard
+        </p>
+
+    </header>
+
+
+    <main class="container">
+        <section class="monitoring-section">
+
+        <h2>
+            Live Monitoring
+        </h2>
+
+        <p class="zone-help">
+            Click on the video to create a restricted zone.
+            Select at least 3 points.
+        </p>
+
+        <div class="video-wrapper">
+
+            <img
+                id="video-stream"
+                src="http://127.0.0.1:8000/api/video/stream"
+                alt="Live monitoring stream"
+            >
+
+            <canvas id="zone-canvas"></canvas>
+
+        </div>
+
+        <div class="zone-controls">
+
+            <button id="save-zone">
+            Save Restricted Zone
+            </button>
+
+            <button id="clear-zone">
+            Clear Zone
+            </button>
+
+        </div>
+
+            <p id="zone-status"></p>
+
+        </section>
+
+        <section class="statistics">
+
+            <div class="stat-card">
+
+                <h2 id="total-incidents">
+                    0
+                </h2>
+
+                <p>
+                    Total Incidents
+                </p>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h2 id="open-incidents">
+                    0
+                </h2>
+
+                <p>
+                    Open Incidents
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <section class="incidents-section">
+
+            <h2>
+                Recent Incidents
+            </h2>
+
+            <div id="incident-list">
+
+                <p>
+                    Loading incidents...
+                </p>
+
+            </div>
+
+            <button
+                id="load-more-incidents"
+                class="load-more-button"
+                type="button"
+                aria-controls="incident-list"
+                hidden
+            >
+                <span id="load-more-label">Show more incidents</span>
+                <span class="load-more-arrow" aria-hidden="true">&#8964;</span>
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
