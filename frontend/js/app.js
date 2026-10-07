@@ -3,12 +3,14 @@ const API_URL = "http://127.0.0.1:8000";
 const incidentList = document.getElementById("incident-list");
 const loadMoreButton = document.getElementById("load-more-incidents");
 const loadMoreLabel = document.getElementById("load-more-label");
+const deleteAllIncidentsButton = document.getElementById("delete-all-incidents");
 const videoStream = document.getElementById("video-stream");
 const zoneCanvas = document.getElementById("zone-canvas");
 const zoneStatus = document.getElementById("zone-status");
 const saveZoneButton = document.getElementById("save-zone");
 const clearZoneButton = document.getElementById("clear-zone");
 
+const incidentStatisticsRefreshInterval = 10000;
 let videoWidth = 0;
 let videoHeight = 0;
 const zonePoints = [];
@@ -17,6 +19,7 @@ let incidents = [];
 let totalIncidentCount = 0;
 let hasMoreIncidents = false;
 let isLoadingMoreIncidents = false;
+let isRefreshingIncidents = false;
 
 
 async function requestJSON(path, options) {
@@ -67,9 +70,49 @@ async function loadIncidents() {
 }
 
 
+async function refreshRecentIncidents() {
+    if (document.hidden || isRefreshingIncidents || isLoadingMoreIncidents) {
+        return;
+    }
+
+    isRefreshingIncidents = true;
+
+    try {
+        const refreshLimit = Math.max(
+            incidentsPerBatch,
+            Math.min(incidents.length, 100)
+        );
+        const summary = await requestJSON(
+            `/api/incidents/page?limit=${refreshLimit}`,
+            { cache: "no-store" }
+        );
+
+        if (!Array.isArray(summary.items)) {
+            throw new Error("Unexpected incidents response");
+        }
+
+        const visibleOlderIncidents = incidents.slice(summary.items.length);
+        const refreshedIds = new Set(summary.items.map(item => String(item.id)));
+        incidents = [
+            ...summary.items,
+            ...visibleOlderIncidents.filter(item => !refreshedIds.has(String(item.id)))
+        ];
+        totalIncidentCount = Number(summary.total) || 0;
+        hasMoreIncidents = Boolean(summary.has_more) || incidents.length < totalIncidentCount;
+        updateStatistics(summary);
+        displayIncidents(incidents);
+    } catch (error) {
+        console.error("Error refreshing recent incidents:", error);
+    } finally {
+        isRefreshingIncidents = false;
+    }
+}
+
+
 function updateStatistics(summary) {
     document.getElementById("total-incidents").textContent = summary.total;
     document.getElementById("open-incidents").textContent = summary.open;
+    deleteAllIncidentsButton.disabled = Number(summary.total) === 0;
 }
 
 
@@ -82,10 +125,18 @@ function renderIncident(incident) {
         : "N/A";
 
     return `
-        <article class="incident-card">
+        <article class="incident-card" data-incident-id="${escapeHTML(incident.id)}">
             <div class="incident-header">
                 <h3>🚨 ${escapeHTML(incident.violation_type || "Unknown incident")}</h3>
-                <span class="status">${escapeHTML(incident.status || "unknown")}</span>
+                <div class="incident-actions">
+                    <span class="status">${escapeHTML(incident.status || "unknown")}</span>
+                    <button
+                        class="delete-incident-button"
+                        type="button"
+                        data-incident-id="${escapeHTML(incident.id)}"
+                        aria-label="Delete incident ${escapeHTML(incident.id)}"
+                    >Delete</button>
+                </div>
             </div>
             <div class="incident-details">
                 <p><strong>Incident ID:</strong> ${escapeHTML(incident.id)}</p>
@@ -99,6 +150,76 @@ function renderIncident(incident) {
             </div>
         </article>
     `;
+}
+
+
+async function deleteIncident(button) {
+    const incidentId = button.dataset.incidentId;
+
+    if (!incidentId || !window.confirm(`Delete incident ${incidentId}? This cannot be undone.`)) {
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        await requestJSON(`/api/incidents/${encodeURIComponent(incidentId)}`, {
+            method: "DELETE"
+        });
+
+        const incident = incidents.find(item => String(item.id) === incidentId);
+        const card = button.closest(".incident-card");
+        card?.remove();
+        incidents = incidents.filter(item => String(item.id) !== incidentId);
+
+        if (incident) {
+            totalIncidentCount = Math.max(0, totalIncidentCount - 1);
+            const openCount = Number(document.getElementById("open-incidents").textContent) || 0;
+            const updatedOpenCount = incident.status === "open"
+                ? Math.max(0, openCount - 1)
+                : openCount;
+
+            updateStatistics({
+                total: totalIncidentCount,
+                open: updatedOpenCount
+            });
+        }
+
+        if (incidents.length === 0 && hasMoreIncidents) {
+            await loadIncidents();
+        } else if (incidents.length === 0) {
+            incidentList.innerHTML = '<div class="empty">No incidents recorded yet.</div>';
+            updateLoadMoreButton();
+        }
+    } catch (error) {
+        console.error("Error deleting incident:", error);
+        window.alert(`Unable to delete incident: ${error.message}`);
+        button.disabled = false;
+    }
+}
+
+
+async function deleteAllIncidents() {
+    if (totalIncidentCount === 0 || !window.confirm(
+        `Delete all ${totalIncidentCount} incidents? This cannot be undone.`
+    )) {
+        return;
+    }
+
+    deleteAllIncidentsButton.disabled = true;
+
+    try {
+        await requestJSON("/api/incidents/", { method: "DELETE" });
+        incidents = [];
+        totalIncidentCount = 0;
+        hasMoreIncidents = false;
+        updateStatistics({ total: 0, open: 0 });
+        displayIncidents(incidents);
+    } catch (error) {
+        console.error("Error deleting all incidents:", error);
+        window.alert(`Unable to delete all incidents: ${error.message}`);
+        deleteAllIncidentsButton.disabled = totalIncidentCount === 0;
+    }
 }
 
 
@@ -170,6 +291,14 @@ function displayIncidents(incidentRecords) {
 
 
 loadMoreButton.addEventListener("click", showMoreIncidents);
+deleteAllIncidentsButton.addEventListener("click", deleteAllIncidents);
+incidentList.addEventListener("click", event => {
+    const button = event.target.closest(".delete-incident-button");
+
+    if (button) {
+        deleteIncident(button);
+    }
+});
 
 
 function setZoneStatus(message) {
@@ -373,7 +502,12 @@ if (clearZoneButton) {
 }
 
 window.addEventListener("resize", setupZoneCanvas);
+window.setInterval(refreshRecentIncidents, incidentStatisticsRefreshInterval);
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        refreshRecentIncidents();
+    }
+});
 
 loadIncidents();
 loadVideoInfo().then(loadSavedZone);
-

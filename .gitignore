@@ -31,3 +31,30 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# Datasets
+dataset/
+SH17_raw/
+
+# Training outputs
+runs/
+yolov7/runs/
+
+# Model weights
+*.pt
+*.pth
+
+# Snapshots
+snapshots/
+
+# Local configuration
+restricted_zone.txt

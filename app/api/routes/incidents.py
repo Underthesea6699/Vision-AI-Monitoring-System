@@ -83,6 +83,17 @@ def get_incident(
     return incident
 
 
+@router.delete("/")
+def delete_all_incidents(db: Session = Depends(get_db)):
+    deleted_count = db.query(Incident).delete(synchronize_session=False)
+    db.commit()
+
+    return {
+        "message": "All incidents deleted successfully",
+        "deleted_count": deleted_count
+    }
+
+
 @router.delete("/{incident_id}")
 def delete_incident(
     incident_id: int,

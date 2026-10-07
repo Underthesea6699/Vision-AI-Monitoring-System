@@ -24,115 +24,108 @@
 <body>
 
     <header class="header">
-
-        <h1>
-            Vision-AI Monitoring System
-        </h1>
-
-        <p>
-            Industrial Safety & Surveillance Dashboard
-        </p>
-
+        <div class="header-content">
+            <div class="brand-mark" aria-hidden="true">VA</div>
+            <div class="brand-copy">
+                <p class="eyebrow">VISION / AI</p>
+                <h1>Monitoring System</h1>
+                <p>Industrial safety and surveillance dashboard</p>
+            </div>
+            <div class="header-badge">
+                <span class="header-indicator" aria-hidden="true"></span>
+                Operations console
+            </div>
+        </div>
     </header>
 
 
     <main class="container">
         <section class="monitoring-section">
-
-        <h2>
-            Live Monitoring
-        </h2>
-
-        <p class="zone-help">
-            Click on the video to create a restricted zone.
-            Select at least 3 points.
-        </p>
-
-        <div class="video-wrapper">
-
-            <img
-                id="video-stream"
-                src="http://127.0.0.1:8000/api/video/stream"
-                alt="Live monitoring stream"
-            >
-
-            <canvas id="zone-canvas"></canvas>
-
-        </div>
-
-        <div class="zone-controls">
-
-            <button id="save-zone">
-            Save Restricted Zone
-            </button>
-
-            <button id="clear-zone">
-            Clear Zone
-            </button>
-
-        </div>
-
-            <p id="zone-status"></p>
-
-        </section>
-
-        <section class="statistics">
-
-            <div class="stat-card">
-
-                <h2 id="total-incidents">
-                    0
-                </h2>
-
-                <p>
-                    Total Incidents
-                </p>
-
+            <div class="section-heading monitoring-heading">
+                <div>
+                    <p class="eyebrow">CAMERA FEED</p>
+                    <h2>Live monitoring</h2>
+                    <p class="section-description">
+                        Click the video to define a restricted zone. Select at least three points.
+                    </p>
+                </div>
+                <span class="feed-label">
+                    <span class="feed-indicator" aria-hidden="true"></span>
+                    Video feed
+                </span>
             </div>
 
-
-            <div class="stat-card">
-
-                <h2 id="open-incidents">
-                    0
-                </h2>
-
-                <p>
-                    Open Incidents
-                </p>
-
+            <div class="video-wrapper">
+                <img
+                    id="video-stream"
+                    src="http://127.0.0.1:8000/api/video/stream"
+                    alt="Live monitoring stream"
+                >
+                <canvas id="zone-canvas"></canvas>
             </div>
 
-        </section>
-
-
-        <section class="incidents-section">
-
-            <h2>
-                Recent Incidents
-            </h2>
-
-            <div id="incident-list">
-
-                <p>
-                    Loading incidents...
-                </p>
-
+            <div class="zone-footer">
+                <div class="zone-controls">
+                    <button id="save-zone" type="button">Save restricted zone</button>
+                    <button id="clear-zone" type="button">Clear points</button>
+                </div>
+                <p id="zone-status" role="status" aria-live="polite"></p>
             </div>
-
-            <button
-                id="load-more-incidents"
-                class="load-more-button"
-                type="button"
-                aria-controls="incident-list"
-                hidden
-            >
-                <span id="load-more-label">Show more incidents</span>
-                <span class="load-more-arrow" aria-hidden="true">&#8964;</span>
-            </button>
-
         </section>
 
+        <aside class="dashboard-sidebar" aria-label="Incident overview">
+            <section class="statistics">
+                <div class="stat-card total-stat">
+                    <div class="stat-topline">
+                        <p class="eyebrow">ALL RECORDED</p>
+                        <span class="stat-icon" aria-hidden="true">#</span>
+                    </div>
+                    <h2 id="total-incidents">0</h2>
+                    <p class="stat-label">Total incidents</p>
+                </div>
+
+                <div class="stat-card open-stat">
+                    <div class="stat-topline">
+                        <p class="eyebrow">NEEDS ATTENTION</p>
+                        <span class="stat-icon" aria-hidden="true">!</span>
+                    </div>
+                    <h2 id="open-incidents">0</h2>
+                    <p class="stat-label">Open incidents</p>
+                </div>
+            </section>
+
+            <section class="incidents-section">
+                <div class="incidents-heading">
+                    <div>
+                        <p class="eyebrow">LATEST ACTIVITY</p>
+                        <h2>Recent incidents</h2>
+                    </div>
+                    <button
+                        id="delete-all-incidents"
+                        class="delete-all-incidents-button"
+                        type="button"
+                        disabled
+                    >
+                        Delete All
+                    </button>
+                </div>
+
+                <div id="incident-list" aria-live="polite">
+                    <p class="loading-message">Loading incidents...</p>
+                </div>
+
+                <button
+                    id="load-more-incidents"
+                    class="load-more-button"
+                    type="button"
+                    aria-controls="incident-list"
+                    hidden
+                >
+                    <span id="load-more-label">Show more incidents</span>
+                    <span class="load-more-arrow" aria-hidden="true">&#8964;</span>
+                </button>
+            </section>
+        </aside>
     </main>
 
 
